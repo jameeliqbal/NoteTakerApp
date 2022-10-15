@@ -8,21 +8,102 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-
-namespace AudioCaptureIntegration.Demo.Properties
-{
+namespace AudioCaptureIntegration.Demo.Properties {
+    
+    
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "11.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
-    {
-
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+        
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-
-        public static Settings Default
-        {
-            get
-            {
+        
+        public static Settings Default {
+            get {
                 return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1rpkupvegg4992c")]
+        public string DropboxAccountAPIKey {
+            get {
+                return ((string)(this["DropboxAccountAPIKey"]));
+            }
+            set {
+                this["DropboxAccountAPIKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DropboxAccountAccessToken {
+            get {
+                return ((string)(this["DropboxAccountAccessToken"]));
+            }
+            set {
+                this["DropboxAccountAccessToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DropboxAccountEmail {
+            get {
+                return ((string)(this["DropboxAccountEmail"]));
+            }
+            set {
+                this["DropboxAccountEmail"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DropboxAccountName {
+            get {
+                return ((string)(this["DropboxAccountName"]));
+            }
+            set {
+                this["DropboxAccountName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DropboxAccountRefreshToken {
+            get {
+                return ((string)(this["DropboxAccountRefreshToken"]));
+            }
+            set {
+                this["DropboxAccountRefreshToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DropboxAccountUID {
+            get {
+                return ((string)(this["DropboxAccountUID"]));
+            }
+            set {
+                this["DropboxAccountUID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CloudAccountTokenExpiresAt {
+            get {
+                return ((string)(this["CloudAccountTokenExpiresAt"]));
+            }
+            set {
+                this["CloudAccountTokenExpiresAt"] = value;
             }
         }
     }

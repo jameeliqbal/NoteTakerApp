@@ -54,6 +54,7 @@ namespace CaptureScreenAudioVideo
             audioCapture = new WasapiLoopbackCapture();
             audioCapture.DataAvailable += AudioCapture_DataAvailable;
             audioCapture.RecordingStopped += AudioCapture_RecordingStopped;
+             
         }
 
         private void AudioCapture_RecordingStopped(object sender, StoppedEventArgs e)
