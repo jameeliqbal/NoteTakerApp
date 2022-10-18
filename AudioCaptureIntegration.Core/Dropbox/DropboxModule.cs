@@ -7,9 +7,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using WForms=System.Windows.Forms;
+
 namespace DropboxAudioTranscription.Modules
 {
 
@@ -20,6 +23,7 @@ namespace DropboxAudioTranscription.Modules
         private HttpListener http = null;
         private Process authProcess = null;
         private Timer processTimer = null;
+        private IntPtr DropboxLoginPageWindowHandle;
 
         // URL to receive OAuth 2 redirect from Dropbox server.
         // You also need to register this redirect URL on https://www.dropbox.com/developers/apps.
@@ -33,11 +37,16 @@ namespace DropboxAudioTranscription.Modules
         private readonly Uri DropboxJSRedirectUri;
 
         public event EventHandler Authenticated;
-        public event EventHandler AuthenticationCancelled;
+        public event EventHandler<DropboxAuthenticationCancelledEventArgs> AuthenticationCancelled;
         public event EventHandler AuthenticationTimedout;
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         //+++++++++
         private readonly DropboxAccount account;
         
+
         public DropboxModule(DropboxAccount account)
         {
             this.account = account;
@@ -59,7 +68,7 @@ namespace DropboxAudioTranscription.Modules
                 //if (hasTimedOut) return;
                 if (hasTimedOut || cancelAuthentication)
                 {
-                    AbortSignin();
+                    //AbortSignin();
                     return;
                 }
 
@@ -81,15 +90,28 @@ namespace DropboxAudioTranscription.Modules
             StopTimer();
             StopHTTPListener(true);
 
-            AuthenticationCancelled?.Invoke(this, EventArgs.Empty);
             hasTimedOut = false;
             cancelAuthentication = false;
         }
 
-        public async Task CancelSignIn()
+        public void CancelSignIn()
         {
             cancelAuthentication = true;
+            AbortSignin();
+            CloseBrowser();
+            var e = new DropboxAuthenticationCancelledEventArgs("Authorization cancelled by user on UI");
+            OnSignInCancelledEvent(e);
 
+        }
+
+        private void OnSignInCancelledEvent(DropboxAuthenticationCancelledEventArgs e)
+        {
+            EventHandler<DropboxAuthenticationCancelledEventArgs> raiseAuthenticationCancelledEvent = AuthenticationCancelled;
+
+            if (raiseAuthenticationCancelledEvent != null)
+            {
+                raiseAuthenticationCancelledEvent(this, e);
+            }
         }
 
         public async Task SignOut()
@@ -122,6 +144,7 @@ namespace DropboxAudioTranscription.Modules
 
                 if (hasTimedOut || cancelAuthentication)
                 {
+                    
                     return false;
                 }
 
@@ -152,6 +175,15 @@ namespace DropboxAudioTranscription.Modules
 
                 return true;
             }
+            catch  (OperationCanceledException ocx)
+            {
+                cancelAuthentication = true;
+                AbortSignin();
+                CloseBrowser();
+
+                var dpcancellation = new DropboxAuthenticationCancelledEventArgs(ocx.Message);
+                OnSignInCancelledEvent(dpcancellation);
+            }
             catch (Exception e)
             {
                 Debug.WriteLine("Error: {0}", e.Message);
@@ -179,6 +211,8 @@ namespace DropboxAudioTranscription.Modules
 
                 //login to dropbox in the browser
                 authProcess = LaunchBrowser(authorizeUri);
+                authProcess.Refresh();
+                DropboxLoginPageWindowHandle = authProcess.Handle;
                 //Debug.WriteLine("pROcess started: " + authProcess.StartInfo.FileName);
 
                 //Start local server to listen to reponse from dropbox page on browser
@@ -210,9 +244,10 @@ namespace DropboxAudioTranscription.Modules
                 var result = redirectUri.Query.Split('&');
                 if (result[0].Contains("error"))
                 {
-                    var errorMessage = Environment.NewLine + result[0].Split('=')[1];
-                    errorMessage += Environment.NewLine + result[1].Split('=')[1].Replace("+", " ");
-                    throw new Exception(errorMessage);
+                    var errorMessage =  result[0].Split('=')[1];
+                    errorMessage += " - "+ result[1].Split('=')[1].Replace("+", " ");
+                     
+                    throw new OperationCanceledException(errorMessage);
                 }
 
                 if (hasTimedOut || cancelAuthentication)
@@ -244,7 +279,7 @@ namespace DropboxAudioTranscription.Modules
 
                 return tokenResult;
             }
-            catch (Exception ex)
+            catch (OperationCanceledException ex)
             {
                 StopTimer();
 
@@ -282,7 +317,7 @@ namespace DropboxAudioTranscription.Modules
                             http.Stop();
 
                     http.Prefixes?.Remove(DropboxLoopbackHost);
-
+                    
 
                 }
                 catch (ObjectDisposedException)
@@ -324,7 +359,7 @@ namespace DropboxAudioTranscription.Modules
                 WindowStyle = ProcessWindowStyle.Normal,
                 FileName = browserPath,
                 Arguments = processArgs,
-                UseShellExecute = false
+                UseShellExecute = true
             };
 
             return Process.Start(psi);
@@ -389,6 +424,7 @@ namespace DropboxAudioTranscription.Modules
 
             StopHTTPListener(true);
             CloseAuthProcess();
+            CloseBrowser();
 
             //notifiy ui of timeout
             AuthenticationTimedout?.Invoke(this, EventArgs.Empty);
@@ -662,9 +698,39 @@ namespace DropboxAudioTranscription.Modules
         }
 
 
+        /// <summary>
+        /// REF1: https://stackoverflow.com/questions/20041514/how-to-send-a-key-to-a-process
+        /// REF2: https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.sendkeys?redirectedfrom=MSDN&view=windowsdesktop-6.0
+        /// </summary>
+        private void CloseBrowser()
+        {
+           
+
+            foreach (Process p in Process.GetProcesses())
+            {
+                //Debug.WriteLine("Main windo handle = " + p.ProcessName + " - " + p.MainWindowTitle + " - " + p.MainWindowHandle);
+                if ((p.MainWindowTitle.Contains("API Request Authorization - Dropbox") || p.MainWindowTitle.Contains("127.0.0.1")) &&
+                    p.MainWindowHandle != IntPtr.Zero)
+                {
+                    SetForegroundWindow(p.MainWindowHandle);
+                    WForms.SendKeys.SendWait("^{F4}");
+                }
+            }
+
+        }
 
         #endregion //Private Methods - Account Services
 
 
+    }
+
+    public class DropboxAuthenticationCancelledEventArgs : EventArgs
+    {
+        public DropboxAuthenticationCancelledEventArgs(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; set; }
     }
 }

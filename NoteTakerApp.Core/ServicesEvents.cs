@@ -15,4 +15,14 @@ namespace NoteTakerApp.Core
 
         public StorageAccount Account { get; set; }
     }
+
+    public class AuthenticationCancelledEventArgs : EventArgs
+    {
+        public AuthenticationCancelledEventArgs(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; set; }
+    }
 }

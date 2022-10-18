@@ -49,6 +49,17 @@ namespace AudioCaptureIntegration.Demo
         {
             _cloudAgent.Authenticated += _cloudAgent_Authenticated;
             _cloudAgent.AuthenticationTimedout += _cloudAgent_AuthenticationTimedout;
+            _cloudAgent.AuthenticationCancelled += _cloudAgent_AuthenticationCancelled;
+        }
+
+        private void _cloudAgent_AuthenticationCancelled(object sender, AuthenticationCancelledEventArgs e)
+        {
+            Cursor = Cursors.Default;
+            Invoke(new Action(() => {
+                var message = "Authentication Cancelled! - " + e.Message;
+                logSyncInfo(message);
+                SetAuthenticationControlsState();
+            }));
         }
 
         private void _cloudAgent_AuthenticationTimedout(object sender, EventArgs e)
@@ -242,6 +253,12 @@ namespace AudioCaptureIntegration.Demo
                 logSyncInfo(errorMessage);
             }
 
+        }
+
+        private void btnCancelSignIn_Click(object sender, EventArgs e)
+        {
+            Cursor = Cursors.WaitCursor;
+            _cloudAgent.CancelSignIn();
         }
     }
 }

@@ -22,6 +22,7 @@ using System.Threading.Tasks;
         // Declare the event using EventHandler<T>
         public event EventHandler<AuthenticatedEventArgs> Authenticated;
         public event EventHandler AuthenticationTimedout;
+        public event EventHandler<AuthenticationCancelledEventArgs> AuthenticationCancelled;
 
         public Services(StorageAccount account)
         {
@@ -40,6 +41,25 @@ using System.Threading.Tasks;
 
             this.dropbox.Authenticated += Dropbox_Authenticated;
             this.dropbox.AuthenticationTimedout += Dropbox_AuthenticationTimedout;
+            this.dropbox.AuthenticationCancelled += Dropbox_AuthenticationCancelled;
+        }
+
+        private void Dropbox_AuthenticationCancelled(object sender, DropboxAuthenticationCancelledEventArgs e)
+        {
+            var authenticationCancelledEventArgs = new AuthenticationCancelledEventArgs(e.Message);
+            OnAuthenticationCancelledEvent(authenticationCancelledEventArgs);
+        }
+
+        private void OnAuthenticationCancelledEvent(AuthenticationCancelledEventArgs e)
+        {
+            EventHandler<AuthenticationCancelledEventArgs> raiseAuthenticationCancelledEvent = AuthenticationCancelled;
+
+            // Event will be null if there are no subscribers
+            if (raiseAuthenticationCancelledEvent != null)
+            {
+                // Call to raise the event.
+                raiseAuthenticationCancelledEvent(this, e);
+            }
         }
 
         private void Dropbox_AuthenticationTimedout(object sender, EventArgs e)
@@ -127,7 +147,12 @@ using System.Threading.Tasks;
             recording.Stop();
         }
 
-        
+        public void CancelSignIn()
+        {
+            dropbox.CancelSignIn();
+        }
+
+
 
         #endregion
 

@@ -155,6 +155,7 @@ namespace AudioCaptureIntegration.Demo
             this.btnCancelSignIn.TabIndex = 1;
             this.btnCancelSignIn.Text = "Cancel Sign-in...";
             this.btnCancelSignIn.UseVisualStyleBackColor = true;
+            this.btnCancelSignIn.Click += new System.EventHandler(this.btnCancelSignIn_Click);
             // 
             // btnSignOut
             // 
