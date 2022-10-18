@@ -273,9 +273,9 @@ namespace DropboxAudioTranscription.Modules
                 //start new session to Notifiy Token Received message in the browser to  the user 
                 StartHTTPListener();
                 await HandleTokenReceivedRedirect(http);
-                StopHTTPListener();
-
                 StopTimer();
+                StopHTTPListener();
+                CloseBrowser();
 
                 return tokenResult;
             }
@@ -313,9 +313,12 @@ namespace DropboxAudioTranscription.Modules
                     if (abort)
                         http.Abort();
                     else
+                    {
                         if (http.IsListening)
                             http.Stop();
-
+                        http.Close();
+                    }
+                        
                     http.Prefixes?.Remove(DropboxLoopbackHost);
                     
 
